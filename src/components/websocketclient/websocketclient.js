@@ -17,11 +17,12 @@ class WebSocketServer{
 		this.server.onclose = this.onclose.bind(this);
 	}
 	onopen(){
-		console.log('connection opened');
+		console.log('client: connection opened',this.callbacks.onopen);
 		this.callbacks.onopen();
 		//this.server.send(JSON.stringify({ type: 'connect', location: this.livePlayer.location, name: this.livePlayer.name}));
 	}
 	onmessage(evt){
+		console.log('client received message');
 		let message = evt.data;
 		message = JSON.parse(message);
 		this.callbacks.onmessage(message);
