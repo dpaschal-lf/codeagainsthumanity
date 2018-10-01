@@ -33,6 +33,7 @@ class Waiting extends Component{
 		return (
 		<div className="dotHolder">
 			{this.props.message}{this.makeDots()}
+			<div style={{ display: this.props.showReady ? 'block':'none'}} className='ready' onClick={this.props.ready}>Ready</div>
 		</div>);
 	}
 }

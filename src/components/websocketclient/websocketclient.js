@@ -17,7 +17,6 @@ class WebSocketServer{
 		this.server.onclose = this.onclose.bind(this);
 	}
 	onopen(){
-		console.log('client: connection opened',this.callbacks.onopen);
 		this.callbacks.onopen();
 		//this.server.send(JSON.stringify({ type: 'connect', location: this.livePlayer.location, name: this.livePlayer.name}));
 	}
@@ -29,12 +28,15 @@ class WebSocketServer{
 	}
 	onclose(){ 
       // websocket is closed.
- 		console.log('connection closed'); 
  		this.callbacks.onclose();
    };
    	send(message, type){
    		const packet = { type, message};
    		this.server.send( JSON.stringify(packet));
+   	}
+   	close(message){
+   		console.log('voluntarily closing websocket connection');
+   		this.server.close();
    	}
 }
 

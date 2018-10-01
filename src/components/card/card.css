@@ -1,0 +1,35 @@
+.text{
+	padding: 5%;
+	font-size: 2vmin;
+}
+.answer{
+	background-color: black;
+}
+.answer > .text{
+	color: white;
+}
+.question{
+	background-color: white;
+	color: black;
+	border: 1px solid black;
+}
+.card{
+	height: 350px;
+	width: 200px;
+	border-radius: 15%;
+	display: inline-block;
+    vertical-align: top;
+    padding: 5%;
+    box-sizing: border-box;
+    position: relative;
+}
+.selected{
+	border: 3px solid lime;
+}
+.cardTag{
+	position: absolute;
+	right: 5%;
+	bottom: 5%;
+	color: lime;
+	font-size: 7vmin;
+}
