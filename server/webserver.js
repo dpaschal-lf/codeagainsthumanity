@@ -5,7 +5,7 @@ const primaryStorage = {
 	questions: null,
 	answers: null
 }
-const maxAnswersInHand = 5;
+const maxAnswersInHand = 7;
 let updateTimer = null;
 const sendQueue = [];
 const updateInterval = 10;
@@ -57,10 +57,11 @@ wsServer.on('request', function(request) {
 			case 'create':
 				gameCode = data.message.game;
 				response = createGame(data.message, playerID, connection);
-				// sendPacket(connection, response);
-				// if(!response.success){
-				// 	connection.close()
-				// } 
+				
+				if(response){
+					//connection.close()
+					sendPacket(connection, response);
+				} 
 				break;
 			case 'ready':
 				games[gameCode].playersByID[playerID].ready = !games[gameCode].playersByID[playerID].ready;
@@ -89,7 +90,12 @@ wsServer.on('request', function(request) {
 					enqueueDataSend(games[gameCode], { 
 						mode: 'player',
 						cardReadyStates: gamePlayerData.cardReadyStates	
-					} , [playerID]);						
+					} , [playerID]);
+					enqueueDataSend(games[gameCode], { 
+						mode: 'judge',
+						playerMaxCount:gamePlayerData.cardReadyStates.length,
+						playerReadyCount: gamePlayerData.cardReadyStates.filter( state => state).length	
+					} , games[gameCode].judge.id);						
 				}
 				else {
 					if(gamePlayerData.cardReadyStates.filter( state=>state).length ===gamePlayerData.names.length){
@@ -195,7 +201,9 @@ wsServer.on('request', function(request) {
     });
 });
 
+function removePlayerFromGame(gameCode, PlayerID){
 
+}
 
 function sendPacket(conn, data){
 	console.log('sending ',data);
@@ -316,7 +324,9 @@ function selectJudge( game, nextJudgeID=null ){
 	judge.selectedAnswers = (new Array(game.questionRequiredAnswers)).fill(true)
 	enqueueDataSend(game, { questions: [game.currentQuestion], answersRequired: game.questionRequiredAnswers, currentAnswers: game.currentAnswers}, allPlayers);
 	onlyPlayers.splice( judgeIndex, 1);
-	enqueueDataSend(game,  {mode: 'judge'}	, [judge.id]);
+	const tempCardStates = (new Array(onlyPlayers.length)).fill(false);
+	tempCardStates.push(true);
+	enqueueDataSend(game,  {mode: 'judge', cardReadyStates: tempCardStates }	, [judge.id]);
 	// sendPacket(judge.connection, {
 	// 	data: {mode: 'judge'}
 	// });
@@ -355,7 +365,7 @@ function addPlayerData(source, destination, count){
 function createGame(gameData, playerID, conn){
 	console.log('***gameData: ', gameData);
 	if(games[gameData.game]){
-		return {success: false, message: 'that game already exists'}
+		return {success: false, data: {mode: 'join', message: 'that game already exists'}}
 	}
 	gameData.playerData.connection = conn;
 

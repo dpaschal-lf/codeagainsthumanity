@@ -14,13 +14,14 @@ class App extends Component {
     super(props);
 	this.validStateKeys = ['players','playerIDs','readyStates','message',
 		'mode','userID', 'gameCode', 'questions','answers','name','cardReadyStates',
-		'answersRequired', 'currentAnswers', 'cardSelections', 'scores'];
+		'answersRequired', 'currentAnswers', 'cardSelections', 'scores',
+		'playerMaxCount', 'playerReadyCount'];
     this.state = {
     	gameCode: 'abc123',
     	connected: false,
     	server: null,
     	mode: 'noop',
-    	name: names[ (Math.random()*names.length)>>0],
+    	name: '',//names[ (Math.random()*names.length)>>0],
     	questions: [
 
     	],
@@ -51,8 +52,9 @@ class App extends Component {
     this.acceptAnswer = this.acceptAnswer.bind(this);
     this.handleReplay = this.handleReplay.bind(this);
     this.handleQuit = this.handleQuit.bind(this);
+    this.updateNameInput = this.updateNameInput.bind(this);
     this.address = `ws://${window.location.hostname}:3001`;
-    this.makeSocketConnection();
+    //this.makeSocketConnection();
   //   this.server = new WebSocketClient(this.address, {
 		// onmessage: this.receiveMessage,
 		// onopen:this.handleOpen,
@@ -62,15 +64,37 @@ class App extends Component {
   componentDidMount(questionURL){
   	//this.loadCSVToArray('questions.txt', 'host');
   	//this.loadCSVToArray('answers.txt', 'guest');
-  	this.setState({ mode: 'join'})
+  	this.setState({ mode: 'getname'})
   }
   static getDerivedStateFromProps(props ,state){
   	return null;
+  }
+  mode_getname(){
+  	return (
+  		<div>
+  			<input className="nameInput" onKeyUp={this.updateNameInput} type="text" placeholder="enter name, or enter for default"/>
+  		</div>
+
+  	)
+  }
+  updateNameInput(event){
+  	console.log( event.currentTarget.value);
+  	if(event.which===13){
+	  	const name = event.currentTarget.value || names[ (Math.random()*names.length)>>0];
+	  	if(!this.state.connected){
+	  		this.makeSocketConnection()
+	  	}
+	  	this.setState({
+	  		name,
+	  		mode: 'join'
+	  	});
+	}
   }
   mode_connectioncheck(){
   	return (
   		<div>
   			<div>You are disconnected</div>
+  			<div>{this.state.message || ''}</div>
   			<button onClick={this.makeSocketConnection}>connect</button>
   		</div>
   	)
@@ -81,14 +105,19 @@ class App extends Component {
 		onopen:this.handleOpen,
 		onclose:this.handleClose,   	
     });
+    console.log(this.server);
 
   }
   mode_noop(){
   	console.log('noop');
   }
   mode_join(){
-  	return(   
-      	<EntryMenu create={this.createGame} join={this.joinGame}/>	
+  	console.log('why');
+  	return(
+  		<div>
+  			{this.state.message}
+      		<EntryMenu create={this.createGame} join={this.joinGame}/>
+      	</div>
     )
   }
   getPlayerReadyList(nameList, readyList){
@@ -96,27 +125,30 @@ class App extends Component {
   }
   mode_judge(){
   	return ( 
-  		<Hand cardText={this.state.questions} type="question" currentAnswers={this.state.currentAnswers.map(item=>'__')}/>
+  		<div>
+  			<Hand cardText={this.state.questions} type="question" currentAnswers={this.state.currentAnswers.map(item=>'__')}/>
+  			Other players are choosing cards ({this.state.cardReadyStates.filter(state=>state).length-1}/{this.state.cardReadyStates.length-1})
+  		</div>
   	);
   }
   mode_player(){
   	return ( 
   		<div>
   			<Hand cardText={this.state.questions} type="question" currentAnswers={this.state.currentAnswers}/>
-  			<Hand cardText={this.state.answers} type="answer" submit={this.acceptAnswer} />
+  			<Hand cardText={this.state.answers} type="answer" submit={this.acceptAnswer} cardUpdate={this.updateCards} />
   		</div>
   	);
   }
 
   mode_waiting(){
-  	const myIndex = this.state.playerIDs.indexOf(this.state.userID);
+  	const myIndex = this.state.playerIDs.indexOf(this.state.userID+'');
   	const currentState = this.state.readyStates[myIndex];
   	return(
   		<div>
 	  		<Waiting message={this.state.message}/>
 	  		<div> waiting to play: </div>
 	  		{ this.getPlayerReadyList(this.state.players, this.state.readyStates) }
-	  		<button onClick={this.readyToggle}>{ currentState ? 'I am ready':'I am not ready' } </button>
+	  		<button onClick={this.readyToggle}>{ currentState ? 'I am not ready':'I am ready' } </button>
 	  	</div>
   	)
   }

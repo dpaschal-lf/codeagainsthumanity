@@ -7,3 +7,13 @@
 	line-height: 2vh;
 	font-size: 2vh;
 }
+button:focus{
+	outline: none;
+}
+.nameInput{
+	width: 50%;
+	margin: 0 auto;
+	display: block;
+	font-size: 4vmin;
+	text-align: center;
+}
